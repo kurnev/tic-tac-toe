@@ -1,24 +1,38 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RootState, AppThunk } from '../../app/store';
-import { fetchCount } from './counterAPI';
+import { createAsyncThunk, ereateSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState, AppThunk } from "../../app/store";
+import { fetchCount } from "./counterAPI";
 
-export interface CounterState {
-  value: number;
-  status: 'idle' | 'loading' | 'failed';
-}
-
-const initialState: CounterState = {
-  value: 0,
-  status: 'idle',
+type Cell = {
+  x: number;
+  y: number;
+  // null means empty
+  // true crossed
+  state: boolean | null;
+  author: Player;
 };
 
-// The function below is called a thunk and allows us to perform async logic. It
+enum Player {
+  "First",
+  "Second",
+}
+
+export interface FieldState {
+  initiative: Player;
+  field: Record<string, { x: number; y: number }>;
+}
+
+const initialState: FieldState = {
+  initiative: Player.First,
+  field: {},
+};
+
 // can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
+// The function below is called a thunk and allows us to perform async logic. It
 // will call the thunk with the `dispatch` function as the first argument. Async
 // code can then be executed and other actions can be dispatched. Thunks are
 // typically used to make async requests.
 export const incrementAsync = createAsyncThunk(
-  'counter/fetchCount',
+  "counter/fetchCount",
   async (amount: number) => {
     const response = await fetchCount(amount);
     // The value we return becomes the `fulfilled` action payload
@@ -27,7 +41,7 @@ export const incrementAsync = createAsyncThunk(
 );
 
 export const counterSlice = createSlice({
-  name: 'counter',
+  name: "counter",
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
@@ -51,10 +65,10 @@ export const counterSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(incrementAsync.pending, (state) => {
-        state.status = 'loading';
+        state.status = "loading";
       })
       .addCase(incrementAsync.fulfilled, (state, action) => {
-        state.status = 'idle';
+        state.status = "idle";
         state.value += action.payload;
       });
   },
