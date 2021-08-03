@@ -1,67 +1,38 @@
-import { CellInfo, getKeyForCell } from "./containers/field/fieldSlice";
+import {
+  CellInfo,
+  Coordinates,
+  getKeyForCell,
+} from "./containers/field/fieldSlice";
 
-export const getAdjacentDiagonalCells = (
-  cells: Record<string, CellInfo>,
+type CoordinatesCalcFuncType = (
   x: number,
   y: number,
-  direction: "left-to-right" | "right-to-left",
-  winCondition: number
-): CellInfo[] => {
-  const cellsResults: CellInfo[] = [];
+  winCondition: number,
+  i: number
+) => Coordinates;
 
-  // because we check all possible win considitons on diagonal line
-  // from move cell
-  for (let i = 0; i < winCondition * 2; i++) {
-    if (direction === "left-to-right") {
-      const key = getKeyForCell(x - winCondition + i, y + winCondition - i);
-      const cell = cells[key];
-      if (cell) {
-        cellsResults.push(cell);
-      }
-    } else if (direction === "right-to-left") {
-      const key = getKeyForCell(x - winCondition + i, y - winCondition + i);
-      const cell = cells[key];
-      if (cell) {
-        cellsResults.push(cell);
-      }
-    }
-  }
+export const getAdjacentCells = (
+  props: {
+    cells: Record<string, CellInfo>;
+    x: number;
+    y: number;
+    winCondition: number;
+  },
+  coordinatesCalcFunc: CoordinatesCalcFuncType
+): (CellInfo & Coordinates)[] => {
+  const cellsResult: (CellInfo & Coordinates)[] = [];
 
-  return cellsResults;
-};
-
-export const getAdjacentHorizontalCells = (
-  cells: Record<string, CellInfo>,
-  x: number,
-  y: number,
-  winCondition: number
-): CellInfo[] => {
-  const cellsResult: CellInfo[] = [];
-
-  for (let i = 0; i < winCondition * 2; i++) {
-    const key = getKeyForCell(x - winCondition + i, y);
-    const cell = cells[key];
+  for (let i = 0; i < props.winCondition * 2; i++) {
+    const coordinates = coordinatesCalcFunc(
+      props.x,
+      props.y,
+      props.winCondition,
+      i
+    );
+    const key = getKeyForCell(coordinates.x, coordinates.y);
+    const cell = props.cells[key];
     if (cell) {
-      cellsResult.push(cell);
-    }
-  }
-
-  return cellsResult;
-};
-
-export const getAdjacentVerticalCells = (
-  cells: Record<string, CellInfo>,
-  x: number,
-  y: number,
-  winCondition: number
-): CellInfo[] => {
-  const cellsResult: CellInfo[] = [];
-
-  for (let i = 0; i < winCondition * 2; i++) {
-    const key = getKeyForCell(x - winCondition + i, y);
-    const cell = cells[key];
-    if (cell) {
-      cellsResult.push(cell);
+      cellsResult.push({ ...cell, x: props.x, y: props.y });
     }
   }
 
@@ -74,31 +45,34 @@ export const checkField = (
   y: number,
   winCondition: number
 ) => {
-  const leftToRightDiagonalResult = getAdjacentDiagonalCells(
-    cells,
-    x,
+  const props = { cells, x, y, winCondition };
+  // left-to-right
+  const diagonalLeftToRight = getAdjacentCells(props, (x, y, w, i) => ({
+    x: x - w + i,
+    y: y + w - i,
+  }));
+  // right-to-left
+  const diagonalRightToLeft = getAdjacentCells(props, (x, y, w, i) => ({
+    x: x - w + i,
+    y: y - w + i,
+  }));
+  // horizontal
+  const horizontal = getAdjacentCells(props, (x, y, w, i) => ({
+    x: x - w + i,
     y,
-    "left-to-right",
-    winCondition
-  );
-  const rightToLeftDiagonalResult = getAdjacentDiagonalCells(
-    cells,
+  }));
+  // vertical
+  const vertical = getAdjacentCells(props, (x, y, w, i) => ({
     x,
-    y,
-    "right-to-left",
-    winCondition
-  );
-  const horizontalCells = getAdjacentHorizontalCells(cells, x, y, winCondition);
-  const verticalCells = getAdjacentVerticalCells(cells, x, y, winCondition);
+    y: y - w + i,
+  }));
 
-  return (
-    leftToRightDiagonalResult ||
-    rightToLeftDiagonalResult ||
-    horizontalCells ||
-    verticalCells
-  );
+  return false;
 };
 
-const hasWinnerInCells = (_cells: CellInfo[], _winCondition: number) => {
+const hasWinnerInCells = (
+  cells: CellInfo[],
+  winCondition: number
+): string[] | null => {
   return false;
 };
