@@ -1,26 +1,32 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 import styles from "./Field.module.css";
 import { Cell } from "../../components/cell";
-
-const GAME_FIELD_WIDTH = 100;
-const GAME_FIELD_HEIGHT = 100;
+import { RootState } from "../../app/store";
+import { getKeyForCell } from "./fieldSlice";
+import { useSelector } from "react-redux";
 
 export function Field() {
-  let cells: Record<string, null | boolean> = {};
-
-  for (let i = 0; i < GAME_FIELD_HEIGHT; i++) {
-    for (let j = 0; j < GAME_FIELD_WIDTH; j++) {
-      const key = `${i}_${j}`;
-      cells[key] = null;
-    }
-  }
-
-  return (
-    <div className={styles.row}>
-      {Object.values(cells).map((value) => (
-        <Cell value={value} />
-      ))}
-    </div>
+  const sidesLength = useSelector(
+    (state: RootState) => state.field.gameFieldSideLength
   );
+
+  const array = useMemo(() => Array(sidesLength).fill(null), [sidesLength]);
+
+  const getField = useMemo(() => {
+    return array.map((_, x) => (
+      <div key={`row_${x}`} className={styles.row}>
+        {array.map((_, y) => (
+          <Cell
+            key={getKeyForCell(x, y)}
+            uniqueKey={getKeyForCell(x, y)}
+            x={x}
+            y={y}
+          />
+        ))}
+      </div>
+    ));
+  }, [array]);
+
+  return <div className={styles.field}>{getField}</div>;
 }
