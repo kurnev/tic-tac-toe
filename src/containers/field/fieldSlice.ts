@@ -1,9 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { checkField } from "../../helpers";
+import { checkField } from "./calculateWinner";
+import { getKeyForCell } from "./helpers";
+import { CellInfo, CellState, Coordinates, Player } from "./types";
 
 const GAME_FIELD_SIDES_LENGTH = 100;
 
-// TODO: do smth better?
 const initCellsState = () => {
   const cells: Record<string, CellInfo> = {};
   Array(GAME_FIELD_SIDES_LENGTH)
@@ -15,31 +16,12 @@ const initCellsState = () => {
           const key = `${indexRow}_${indexColumn}`;
           cells[key] = {
             state: null,
-            author: null,
+            x: indexRow,
+            y: indexColumn,
           };
         });
     });
   return cells;
-};
-
-export const getKeyForCell = (x: number, y: number) => `${x}_${y}`;
-
-export type CellInfo = {
-  // null means empty
-  // true crossed
-  // TODO: make proper comments
-  state: boolean | null;
-  author: Player | null;
-};
-
-enum Player {
-  "First",
-  "Second",
-}
-
-export type Coordinates = {
-  x: number;
-  y: number;
 };
 
 export interface FieldState {
@@ -74,11 +56,13 @@ export const fieldSlice = createSlice({
       const key = getKeyForCell(action.payload.x, action.payload.y);
       const cellValue = state.cells[key];
       if (cellValue) {
-        cellValue.author = state.initiative;
+        cellValue.state =
+          state.initiative === Player.First ? CellState.X : CellState.O;
         if (cellValue.state !== null) {
-          cellValue.state = !cellValue.state;
+          cellValue.state =
+            cellValue.state === CellState.X ? CellState.O : CellState.X;
         } else {
-          cellValue.state = true;
+          cellValue.state = CellState.X;
         }
       }
 
@@ -89,12 +73,17 @@ export const fieldSlice = createSlice({
       // check if someone has won the game
       // check area with sides of win_condition from last move
 
-      const result = checkField(
+      state.winner = checkField(
         state.cells,
         action.payload.x,
         action.payload.y,
         state.winCondition
       );
+
+      if (state.winner !== null) {
+        state.gameFinished = true;
+      }
+
       // if there are no moves left - finish game
 
       if (state.cellsWithValues === GAME_FIELD_SIDES_LENGTH ** 2) {

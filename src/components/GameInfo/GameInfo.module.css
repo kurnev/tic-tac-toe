@@ -1,0 +1,8 @@
+.panel {
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+  background-color: white;
+  font-size: 0.8rem;
+  border-top: 1px solid gray;
+}
