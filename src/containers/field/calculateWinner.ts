@@ -97,7 +97,7 @@ export const hasWinnerInCells = (
         if (isSameAuthor) {
           iterator++;
         } else {
-          iterator = 0;
+          iterator = 1;
         }
       } else {
         iterator++;

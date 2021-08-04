@@ -49,6 +49,19 @@ export const fieldSlice = createSlice({
   initialState,
   reducers: {
     playerMove: (state: FieldState, action: PayloadAction<Coordinates>) => {
+      // do nothing if not 0,0 is clicked on first turn
+      if (
+        state.cellsWithValues === 0 &&
+        state.initiative === Player.First &&
+        (action.payload.x !== 0 || action.payload.y !== 0)
+      ) {
+        return;
+      }
+
+      if (state.gameFinished) {
+        return;
+      }
+
       // change initiative
       state.initiative =
         state.initiative === Player.First ? Player.Second : Player.First;
@@ -70,9 +83,6 @@ export const fieldSlice = createSlice({
         state.cellsWithValues++;
       }
 
-      // check if someone has won the game
-      // check area with sides of win_condition from last move
-
       state.winner = checkField(
         state.cells,
         action.payload.x,
@@ -85,7 +95,6 @@ export const fieldSlice = createSlice({
       }
 
       // if there are no moves left - finish game
-
       if (state.cellsWithValues === GAME_FIELD_SIDES_LENGTH ** 2) {
         state.gameFinished = true;
       }

@@ -39,7 +39,7 @@ export function Field() {
         alert(`Game has finished!`);
       }
     },
-    [winner]
+    [winner, gameFinished]
   );
 
   return (

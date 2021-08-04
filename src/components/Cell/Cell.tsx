@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../../app/store";
 import { playerMove } from "../../containers/field/fieldSlice";
@@ -11,10 +11,6 @@ export const Cell: React.FC<Coordinates> = ({ x, y }) => {
   const cellValue = useAppSelector(
     (state) => state.field.cells[getKeyForCell(x, y)]
   );
-  const gameFinished = useAppSelector((state) => state.field.gameFinished);
-  const firstCellState = useAppSelector(
-    (state) => state.field.cells[getKeyForCell(0, 0)]
-  );
 
   const renderValue = useCallback((value: CellState | null) => {
     if (value === CellState.X) {
@@ -26,20 +22,12 @@ export const Cell: React.FC<Coordinates> = ({ x, y }) => {
     return "";
   }, []);
 
-  // TODO: do not disable all buttons for first move or game end
-  const isDisabled = useMemo(
-    () =>
-      cellValue.state !== null ||
-      gameFinished ||
-      (firstCellState.state === null && (x !== 0 || y !== 0)),
-    [cellValue, gameFinished, firstCellState]
-  );
-
   return (
     <button
       className={styles.cell}
-      disabled={isDisabled}
+      disabled={cellValue.state !== null}
       onClick={() => dispatch(playerMove({ x, y }))}
+      data-testid={`cell_${x}_${y}`}
     >
       {renderValue(cellValue.state)}
     </button>
